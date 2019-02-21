@@ -276,7 +276,7 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
             loss_stage1 = cls_loss_stage1 + config.lamb * reg_loss_stage1
             # stage2
             # TODO anchor filter
-            new_anchors = box_transform_inv(train_dataset.anchors,pred_offset_stage1.cpu().detach().numpy())
+            new_anchors = box_transform_inv(train_dataset.anchors,pred_offset_stage1[0].cpu().detach().numpy())
             # regression_target_stage2, conf_target_stage2 = regression_target.cuda(), conf_target.cuda()
             regression_target_stage2, conf_target_stage2 = train_dataset.compute_target(new_anchors,target_gt)
             anchor_num_stage2 = config.anchor_num
