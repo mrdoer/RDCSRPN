@@ -29,11 +29,17 @@ def rpn_cross_entropy_balance(input, target, num_pos, num_neg):
     cal_index_neg = np.array([], dtype=np.int64)
     for batch_id in range(target.shape[0]):
         print('****',target[batch_id].shape)
-        pos_index = np.random.choice(np.where(target[batch_id].cpu() == 1)[0], num_pos)
+        try:
+            pos_index = np.random.choice(np.where(target[batch_id].cpu() == 1)[0], num_pos)
+            cal_index_pos = np.append(cal_index_pos, batch_id * target.shape[1] + pos_index)
+        except:
+            pos_index = np.array([])
         neg_index = np.random.choice(np.where(target[batch_id].cpu() == 0)[0], num_neg)
-        cal_index_pos = np.append(cal_index_pos, batch_id * target.shape[1] + pos_index)
         cal_index_neg = np.append(cal_index_neg, batch_id * target.shape[1] + neg_index)
-    pos_loss = F.cross_entropy(input=input.reshape(-1, 2)[cal_index_pos], target=target.flatten()[cal_index_pos],
+    if cal_index_pos.shape[0] == 0:
+        pos_loss = 0
+    else:
+        pos_loss = F.cross_entropy(input=input.reshape(-1, 2)[cal_index_pos], target=target.flatten()[cal_index_pos],
                                reduction='sum') / cal_index_pos.shape[0]
     neg_loss = F.cross_entropy(input=input.reshape(-1, 2)[cal_index_neg], target=target.flatten()[cal_index_neg],
                                reduction='sum') / cal_index_neg.shape[0]
