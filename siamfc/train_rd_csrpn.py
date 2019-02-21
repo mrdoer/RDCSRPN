@@ -290,7 +290,7 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
                 rt_tmp,ct_tmp = list(rt_tmp),list(ct_tmp)
                 regression_target_stage2.append(rt_tmp)
                 conf_target_stage2.append(ct_tmp)
-            regression_target_stage2, conf_target_stage2 = np.asarray(regression_target_stage2), np.asarray(conf_target_stage2)
+            regression_target_stage2, conf_target_stage2 = torch.tensor(np.asarray(regression_target_stage2)).cuda(), torch.tensor(np.asarray(conf_target_stage2)).cuda()
             anchor_num_stage2 = config.anchor_num
             pred_conf_stage2 = pred_score_stage2.reshape(-1, 2,
                                             anchor_num_stage2 * config.score_size * config.score_size).permute(0,
