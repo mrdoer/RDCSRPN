@@ -12,13 +12,13 @@ class Config:
     num_per_epoch = 4 * 53200              # num of samples per epoch
     train_ratio = 0.95                     # training ratio of VID dataset
     frame_range = 100                      # frame range of choosing the instance
-    train_batch_size = 1                  # training batch size
-    valid_batch_size = 1                  # validation batch size
-    train_num_workers = 1                  # number of workers of train dataloader
-    valid_num_workers = 1                  # number of workers of validation dataloader
+    train_batch_size = 8                  # training batch size
+    valid_batch_size = 8                  # validation batch size
+    train_num_workers = 4                  # number of workers of train dataloader
+    valid_num_workers = 4                  # number of workers of validation dataloader
 
-    start_lr = 1e-4
-    end_lr = 1e-4
+    start_lr = 1e-6
+    end_lr = 1e-6
     warm_epoch = None
     warm_lr = 1e-6
     warm_scale = warm_lr/start_lr
