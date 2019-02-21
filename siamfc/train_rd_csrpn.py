@@ -283,12 +283,13 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
             print('target_gt shape:{}, {}'.format(target_gt.shape,target_gt))
             # regression_target_stage2, conf_target_stage2 = regression_target.cuda(), conf_target.cuda()
             # regression_target_stage2, conf_target_stage2 = train_dataset.compute_target(new_anchors,target_gt)
-            regression_target_stage2, conf_target_stage2 = np.array([]),np.array([])
+            regression_target_stage2, conf_target_stage2 = pred_score_stage1, pred_regression_stage1
             for box_index in range(config.train_batch_size):
                 print('{}th box {}'.format(box_index,target_gt[box_index]))
                 rt_tmp,ct_tmp = train_dataset.compute_target(new_anchors,target_gt[box_index].cpu().detach().numpy())
-                regression_target_stage2 = np.append(regression_target_stage2, rt_tmp)
-                conf_target_stage2 = np.append(conf_target_stage2, ct_tmp)
+                print('tr_tmp: {}'.format(rt_tmp.shape))
+                regression_target_stage2[box_index] = rt_tmp
+                conf_target_stage2[box_index] = ct_tmp
             print('stage2 regression target: {}'.format(regression_target_stage2.shape))
             print('stage2 conf target: {}'.format(conf_target_stage2.shape))
             regression_target_stage2, conf_target_stage2 = torch.tensor(regression_target_stage2).cuda(), torch.tensor(conf_target_stage2).cuda()
