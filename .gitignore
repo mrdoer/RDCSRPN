@@ -3,3 +3,4 @@
 *.tensorflow-2-vm
 *.pth
 *.bp
+*.pytorch-1-vm
