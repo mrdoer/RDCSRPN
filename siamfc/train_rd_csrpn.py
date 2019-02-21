@@ -23,7 +23,7 @@ from collections import OrderedDict
 
 from .config import config
 from .rd_csrpn import DenseSiamese
-from .dataset_rd_csrpn import ImagnetVIDDataset_ as ImagnetVIDDataset 
+from .dataset_rd_csrpn import ImagnetVIDDataset_ as ImagnetVIDDataset
 from .custom_transforms import Normalize, ToTensor, RandomStretch, \
     RandomCrop, CenterCrop, RandomBlur, ColorAug
 from .loss import rpn_smoothL1
@@ -39,9 +39,9 @@ torch.manual_seed(config.seed)
 def train(data_dir, model_path=None, vis_port=None, init=None):
     def compute_target(anchors, box):
         regression_target = box_transform(anchors, box)
-        print('stage2 gt box {}'.format(box))
+        # print('stage2 gt box {}'.format(box))
         iou = compute_iou(anchors, box).flatten()
-        print(np.max(iou))
+        # print(np.max(iou))
         pos_index = np.where(iou > config.pos_threshold)[0]
         neg_index = np.where(iou < config.neg_threshold)[0]
         label = np.ones_like(iou) * -1
@@ -128,8 +128,10 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
         for epoch in range(config.warm_epoch):
             train_loss = []
             model.train()
-            loss_temp_cls = 0
-            loss_temp_reg = 0
+            loss_temp_cls_stage1 = 0
+            loss_temp_cls_stage2 = 0
+            loss_temp_reg_stage1 = 0
+            loss_temp_reg_stage2 = 0
             for i, data in enumerate(tqdm(trainloader)):
                 exemplar_imgs, instance_imgs, regression_target, conf_target, target_gt = data
                 # conf_target (8,1125) (8,225x5)
@@ -268,13 +270,13 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
         for i, data in enumerate(tqdm(trainloader)):
             exemplar_imgs, instance_imgs, regression_target, conf_target, target_gt = data
             # conf_target (8,1125) (8,225x5)
-            print('regression target: {}'.format(regression_target.shape))
-            print('conf target: {}'.format(conf_target.shape))
-            print('target gt {}'.format(target_gt))
+            # print('regression target: {}'.format(regression_target.shape))
+            # print('conf target: {}'.format(conf_target.shape))
+            # print('target gt {}'.format(target_gt))
             regression_target, conf_target = regression_target.cuda(), conf_target.cuda()
 
             # stage1
-            print('+++++++  Stage1 +++++++++++')
+            # print('+++++++  Stage1 +++++++++++')
             pred_score_stage1, pred_regression_stage1, pred_score_stage2, pred_regression_stage2 = model(exemplar_imgs.cuda(), instance_imgs.cuda())
 
             pred_conf_stage1 = pred_score_stage1.reshape(-1, 2,
@@ -286,19 +288,19 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
                                                                                                                     0,
                                                                                                                     2,
                                                                                                                     1)
-            print('cls',pred_conf_stage1.shape,conf_target.shape,config.num_pos,config.num_neg)
+            # print('cls',pred_conf_stage1.shape,conf_target.shape,config.num_pos,config.num_neg)
             cls_loss_stage1 = rpn_cross_entropy_balance(pred_conf_stage1, conf_target, config.num_pos, config.num_neg)
-            print('reg',pred_offset_stage1.shape,regression_target.shape,conf_target.shape)
+            # print('reg',pred_offset_stage1.shape,regression_target.shape,conf_target.shape)
             reg_loss_stage1 = rpn_smoothL1(pred_offset_stage1, regression_target, conf_target)
             loss_stage1 = cls_loss_stage1 + config.lamb * reg_loss_stage1
             # stage2
             # TODO anchor filter
-            print('+++++++  Stage2 +++++++++++')
+            # print('+++++++  Stage2 +++++++++++')
             new_anchors = box_transform_inv(train_dataset.anchors,pred_offset_stage1[0].cpu().detach().numpy())
             # np.savetxt('train_dataset_anchors.txt',train_dataset.anchors)
             # np.savetxt('new_anchors.txt',new_anchors)
-            print('new anchors shape:{}'.format(new_anchors.shape))
-            print('target_gt shape:{}'.format(target_gt.shape))
+            # print('new anchors shape:{}'.format(new_anchors.shape))
+            # print('target_gt shape:{}'.format(target_gt.shape))
             # regression_target_stage2, conf_target_stage2 = regression_target.cuda(), conf_target.cuda()
             regression_target_stage2, conf_target_stage2 = regression_target.cpu().detach().numpy(), conf_target.cpu().detach().numpy()
             # np.savetxt('conf_target_stage1.txt',conf_target_stage2)
@@ -312,8 +314,8 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
                 conf_target_stage2[box_index] = ct_tmp
             # np.savetxt('conf_target_stage2.txt',conf_target_stage2)
             # np.savetxt('regression_target_stage1.txt',regression_target_stage2[0])
-            print('stage2 regression target: {}'.format(regression_target_stage2.shape))
-            print('stage2 conf target: {}'.format(conf_target_stage2.shape))
+            # print('stage2 regression target: {}'.format(regression_target_stage2.shape))
+            # print('stage2 conf target: {}'.format(conf_target_stage2.shape))
             regression_target_stage2, conf_target_stage2 = torch.tensor(regression_target_stage2).cuda(), torch.tensor(conf_target_stage2).cuda()
             anchor_num_stage2 = config.anchor_num
             pred_conf_stage2 = pred_score_stage2.reshape(-1, 2,
@@ -325,9 +327,9 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
                                                                                                                     0,
                                                                                                                     2,
                                                                                                                     1)
-            print('cls',pred_conf_stage2.shape,conf_target_stage2.shape,config.num_pos,config.num_neg)
+            # print('cls',pred_conf_stage2.shape,conf_target_stage2.shape,config.num_pos,config.num_neg)
             cls_loss_stage2 = rpn_cross_entropy_balance(pred_conf_stage2, conf_target_stage2, config.num_pos, config.num_neg)
-            print('reg',pred_offset_stage2.shape,regression_target_stage2.shape,conf_target_stage2.shape)
+            # print('reg',pred_offset_stage2.shape,regression_target_stage2.shape,conf_target_stage2.shape)
             reg_loss_stage2 = rpn_smoothL1(pred_offset_stage2, regression_target_stage2, conf_target_stage2)
             loss_stage2 = cls_loss_stage2 + config.lamb * reg_loss_stage2
 
