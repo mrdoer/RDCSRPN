@@ -285,6 +285,7 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
             # regression_target_stage2, conf_target_stage2 = train_dataset.compute_target(new_anchors,target_gt)
             regression_target_stage2, conf_target_stage2 = [],[]
             for box_index in range(config.train_batch_size):
+                print('{}th box {}'.format(box_index,target_gt[box_index]))
                 rt_tmp,ct_tmp = train_dataset.compute_target(new_anchors,target_gt[box_index])
                 rt_tmp,ct_tmp = list(rt_tmp),list(ct_tmp)
                 regression_target_stage2.append(rt_tmp)
