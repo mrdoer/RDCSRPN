@@ -37,6 +37,17 @@ torch.manual_seed(config.seed)
 
 
 def train(data_dir, model_path=None, vis_port=None, init=None):
+    def compute_target(self, anchors, box):
+        regression_target = box_transform(anchors, box)
+        print('stage2 gt box {}'.format(box))
+        iou = compute_iou(anchors, box).flatten()
+        # print(np.max(iou))
+        pos_index = np.where(iou > config.pos_threshold)[0]
+        neg_index = np.where(iou < config.neg_threshold)[0]
+        label = np.ones_like(iou) * -1
+        label[pos_index] = 1
+        label[neg_index] = 0
+        return regression_target, label
     # loading meta data
     meta_data_path = os.path.join(data_dir, "meta_data.pkl")
     meta_data = pickle.load(open(meta_data_path, 'rb'))
@@ -294,7 +305,7 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
             np.savetxt('regression_target_stage1.txt',regression_target_stage2[0])
             for box_index in range(config.train_batch_size):
                 # print('{}th box {}'.format(box_index,target_gt[box_index]))
-                rt_tmp,ct_tmp = train_dataset.compute_target(new_anchors,target_gt[box_index].cpu().detach().numpy())
+                rt_tmp,ct_tmp = compute_target(new_anchors,target_gt[box_index].cpu().detach().numpy())
                 # print('rt_tmp: {}'.format(rt_tmp.shape))
                 # print('ct_tmp: {}'.format(ct_tmp.shape))
                 regression_target_stage2[box_index] = rt_tmp
