@@ -283,7 +283,7 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
             print('target_gt shape:{}, {}'.format(target_gt.shape,target_gt))
             # regression_target_stage2, conf_target_stage2 = regression_target.cuda(), conf_target.cuda()
             # regression_target_stage2, conf_target_stage2 = train_dataset.compute_target(new_anchors,target_gt)
-            regression_target_stage2, conf_target_stage2 = pred_score_stage1, pred_regression_stage1
+            regression_target_stage2, conf_target_stage2 = pred_score_stage1.cpu().detach().numpy(), pred_regression_stage1.cpu().detach().numpy()
             for box_index in range(config.train_batch_size):
                 print('{}th box {}'.format(box_index,target_gt[box_index]))
                 rt_tmp,ct_tmp = train_dataset.compute_target(new_anchors,target_gt[box_index].cpu().detach().numpy())
