@@ -295,14 +295,14 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
             # TODO anchor filter
             print('+++++++  Stage2 +++++++++++')
             new_anchors = box_transform_inv(train_dataset.anchors,pred_offset_stage1[0].cpu().detach().numpy())
-            np.savetxt('train_dataset_anchors.txt',train_dataset.anchors)
-            np.savetxt('new_anchors.txt',new_anchors)
+            # np.savetxt('train_dataset_anchors.txt',train_dataset.anchors)
+            # np.savetxt('new_anchors.txt',new_anchors)
             print('new anchors shape:{}'.format(new_anchors.shape))
             print('target_gt shape:{}'.format(target_gt.shape))
             # regression_target_stage2, conf_target_stage2 = regression_target.cuda(), conf_target.cuda()
             regression_target_stage2, conf_target_stage2 = regression_target.cpu().detach().numpy(), conf_target.cpu().detach().numpy()
-            np.savetxt('conf_target_stage1.txt',conf_target_stage2)
-            np.savetxt('regression_target_stage1.txt',regression_target_stage2[0])
+            # np.savetxt('conf_target_stage1.txt',conf_target_stage2)
+            # np.savetxt('regression_target_stage1.txt',regression_target_stage2[0])
             for box_index in range(config.train_batch_size):
                 # print('{}th box {}'.format(box_index,target_gt[box_index]))
                 rt_tmp,ct_tmp = compute_target(new_anchors,target_gt[box_index].cpu().detach().numpy())
@@ -310,8 +310,8 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
                 # print('ct_tmp: {}'.format(ct_tmp.shape))
                 regression_target_stage2[box_index] = rt_tmp
                 conf_target_stage2[box_index] = ct_tmp
-            np.savetxt('conf_target_stage2.txt',conf_target_stage2)
-            np.savetxt('regression_target_stage1.txt',regression_target_stage2[0])
+            # np.savetxt('conf_target_stage2.txt',conf_target_stage2)
+            # np.savetxt('regression_target_stage1.txt',regression_target_stage2[0])
             print('stage2 regression target: {}'.format(regression_target_stage2.shape))
             print('stage2 conf target: {}'.format(conf_target_stage2.shape))
             regression_target_stage2, conf_target_stage2 = torch.tensor(regression_target_stage2).cuda(), torch.tensor(conf_target_stage2).cuda()
@@ -348,62 +348,13 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
             #     vis.plot_error({'rpn_cls_loss': cls_loss.detach().cpu().numpy().ravel()[0],
             #                     'rpn_regress_loss': reg_loss.detach().cpu().numpy().ravel()[0]}, win=0)
             if (i + 1) % config.show_interval == 0:
-                tqdm.write("[epoch %2d][iter %4d] cls_loss: %.4f, reg_loss: %.4f lr: %.2e"
-                           % (epoch, i, loss_temp_cls / config.show_interval, loss_temp_reg / config.show_interval,
-                              optimizer.param_groups[0]['lr']))
-                loss_temp_cls = 0
-                loss_temp_reg = 0
-                # if vis_port:
-                #     anchors_show = train_dataset.anchors
-                #     exem_img = exemplar_imgs[0].cpu().numpy().transpose(1, 2, 0)
-                #     inst_img = instance_imgs[0].cpu().numpy().transpose(1, 2, 0)
-
-                #     # show detected box with max score
-                #     topk = 3
-                #     cls_pred = F.softmax(pred_conf, dim=2)[0, :, 1]
-                #     vis.plot_img(exem_img.transpose(2, 0, 1), win=1, name='exemple')
-                #     topk_box = get_topk_box(cls_pred, pred_offset[0], anchors_show, topk=topk)
-                #     img_box = add_box_img(inst_img, topk_box)
-                #     cls_pred = conf_target[0]
-                #     gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)
-                #     img_box = add_box_img(img_box, gt_box, color=(255, 0, 0))
-                #     vis.plot_img(img_box.transpose(2, 0, 1), win=2, name='box_max_score')
-
-                #     # show gt_box
-                #     cls_pred = conf_target[0]
-                #     gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)
-                #     img_box = add_box_img(inst_img, gt_box, color=(255, 0, 0))
-                #     vis.plot_img(img_box.transpose(2, 0, 1), win=3, name='box_gt')
-
-                #     # show anchor with max score
-                #     cls_pred = F.softmax(pred_conf, dim=2)[0, :, 1]
-                #     scores, index = torch.topk(cls_pred, k=topk)
-                #     img_box = add_box_img(inst_img, anchors_show[index.cpu()])
-                #     cls_pred = conf_target[0]
-                #     gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)
-                #     img_box = add_box_img(img_box, gt_box, color=(255, 0, 0))
-                #     vis.plot_img(img_box.transpose(2, 0, 1), win=4, name='anchor_max_score')
-
-                #     # show anchor and detected box with max iou
-                #     cls_pred = conf_target[0]
-                #     gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)[0]
-                #     iou = compute_iou(anchors_show, gt_box).flatten()
-                #     index = np.argsort(iou)[-topk:]
-                #     img_box = add_box_img(inst_img, anchors_show[index])
-                #     cls_pred = conf_target[0]
-                #     gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)
-                #     img_box = add_box_img(img_box, gt_box, color=(255, 0, 0))
-                #     vis.plot_img(img_box.transpose(2, 0, 1), win=5, name='anchor_max_iou')
-                #     # detected box
-                #     regress_offset = pred_offset[0].cpu().detach().numpy()
-                #     topk_offset = regress_offset[index, :]
-                #     anchors = anchors_show[index, :]
-                #     pred_box = box_transform_inv(anchors, topk_offset)
-                #     img_box = add_box_img(inst_img, pred_box)
-                #     cls_pred = conf_target[0]
-                #     gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)
-                #     img_box = add_box_img(img_box, gt_box, color=(255, 0, 0))
-                #     vis.plot_img(img_box.transpose(2, 0, 1), win=6, name='box_max_iou')
+                tqdm.write("[epoch %2d][iter %4d] cls_loss_stage1: %.4f, reg_loss_stage1: %.4f,cls_loss_stage2: %.4f, reg_loss_stage2: %.4f lr: %.2e"
+                           % (epoch, i, loss_temp_cls_stage1 / config.show_interval, loss_temp_reg_stage1 / config.show_interval,
+                              loss_temp_cls_stage2 / config.show_interval, loss_temp_reg_stage2 / config.show_interval, optimizer.param_groups[0]['lr']))
+                loss_temp_cls_stage1 = 0
+                loss_temp_cls_stage2 = 0
+                loss_temp_reg_stage1 = 0
+                loss_temp_reg_stage2 = 0
 
         train_loss = np.mean(train_loss)
 
@@ -431,9 +382,16 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
             loss_stage1 = cls_loss_stage1 + config.lamb * reg_loss_stage1
             # stage2
             # TODO anchor filter
-            new_anchors = box_transform_inv(train_dataset.anchors,pred_offset_stage1)
-            # regression_target_stage2, conf_target_stage2 = regression_target.cuda(), conf_target.cuda()
-            regression_target_stage2, conf_target_stage2 = train_dataset.compute_target(new_anchors,target_gt)
+            new_anchors = box_transform_inv(train_dataset.anchors,pred_offset_stage1[0].cpu().detach().numpy())
+
+            regression_target_stage2, conf_target_stage2 = torch.tensor(regression_target_stage2).cuda(), torch.tensor(conf_target_stage2).cuda()
+            for box_index in range(config.train_batch_size):
+                # print('{}th box {}'.format(box_index,target_gt[box_index]))
+                rt_tmp,ct_tmp = compute_target(new_anchors,target_gt[box_index].cpu().detach().numpy())
+                # print('rt_tmp: {}'.format(rt_tmp.shape))
+                # print('ct_tmp: {}'.format(ct_tmp.shape))
+                regression_target_stage2[box_index] = rt_tmp
+                conf_target_stage2[box_index] = ct_tmp
             anchor_num_stage2 = config.anchor_num
             pred_conf_stage2 = pred_score_stage2.reshape(-1, 2,
                                             anchor_num_stage2 * config.score_size * config.score_size).permute(0,
