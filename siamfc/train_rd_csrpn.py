@@ -283,11 +283,14 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
             # TODO anchor filter
             print('+++++++  Stage2 +++++++++++')
             new_anchors = box_transform_inv(train_dataset.anchors,pred_offset_stage1[0].cpu().detach().numpy())
+            np.savetxt('train_dataset_anchors.txt',train_dataset.anchors)
+            np.savetxt('new_anchors.txt',new_anchors)
             print('new anchors shape:{}'.format(new_anchors.shape))
             print('target_gt shape:{}'.format(target_gt.shape))
             # regression_target_stage2, conf_target_stage2 = regression_target.cuda(), conf_target.cuda()
             regression_target_stage2, conf_target_stage2 = regression_target.cpu().detach().numpy(), conf_target.cpu().detach().numpy()
             np.savetxt('conf_target_stage1.txt',conf_target_stage2)
+            np.savetxt('regression_target_stage1.txt',regression_target_stage2)
             for box_index in range(config.train_batch_size):
                 # print('{}th box {}'.format(box_index,target_gt[box_index]))
                 rt_tmp,ct_tmp = train_dataset.compute_target(new_anchors,target_gt[box_index].cpu().detach().numpy())
@@ -296,6 +299,7 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
                 regression_target_stage2[box_index] = rt_tmp
                 conf_target_stage2[box_index] = ct_tmp
             np.savetxt('conf_target_stage2.txt',conf_target_stage2)
+            np.savetxt('regression_target_stage1.txt',regression_target_stage2)
             print('stage2 regression target: {}'.format(regression_target_stage2.shape))
             print('stage2 conf target: {}'.format(conf_target_stage2.shape))
             regression_target_stage2, conf_target_stage2 = torch.tensor(regression_target_stage2).cuda(), torch.tensor(conf_target_stage2).cuda()
