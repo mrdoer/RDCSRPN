@@ -19,7 +19,7 @@ class Config:
 
     start_lr = 1e-4
     end_lr = 1e-4
-    warm_epoch = None 
+    warm_epoch = None
     warm_lr = 1e-6
     warm_scale = warm_lr/start_lr
     epoch = 100
@@ -49,7 +49,7 @@ class Config:
     lamb = 100
     save_interval = 1
     show_interval = 1
-    pretrained_model = None 
+    pretrained_model = None
 
     # tracking related
     gray_ratio = 0.25

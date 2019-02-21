@@ -176,7 +176,7 @@ class ImagnetVIDDataset_(Dataset):
         return im_patch, gt_cx, gt_cy
 
     def compute_target(self, anchors, box):
-        regression_target = box_transform(anchors, box)
+        regression_target = box_triansform(anchors, box)
 
         iou = compute_iou(anchors, box).flatten()
         # print(np.max(iou))
@@ -232,6 +232,7 @@ class ImagnetVIDDataset_(Dataset):
             instance_img, gt_w, gt_h = self.RandomStretch(instance_img, gt_w, gt_h)
             instance_img, gt_cx, gt_cy = self.RandomCrop(instance_img, )
             target_gt = np.array(list(map(round, [gt_cx, gt_cy, gt_w, gt_h])))
+            print('target_gt shape:{}, {}'.format(target_gt.shape,target_gt))
             instance_img = self.x_transforms(instance_img)
             regression_target, conf_target = self.compute_target(self.anchors,
                                                                  target_gt)
