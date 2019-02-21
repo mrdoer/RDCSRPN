@@ -288,10 +288,10 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
             # regression_target_stage2, conf_target_stage2 = regression_target.cuda(), conf_target.cuda()
             regression_target_stage2, conf_target_stage2 = regression_target.cpu().detach().numpy(), conf_target.cpu().detach().numpy()
             for box_index in range(config.train_batch_size):
-                print('{}th box {}'.format(box_index,target_gt[box_index]))
+                # print('{}th box {}'.format(box_index,target_gt[box_index]))
                 rt_tmp,ct_tmp = train_dataset.compute_target(new_anchors,target_gt[box_index].cpu().detach().numpy())
-                print('rt_tmp: {}'.format(rt_tmp.shape))
-                print('ct_tmp: {}'.format(ct_tmp.shape))
+                # print('rt_tmp: {}'.format(rt_tmp.shape))
+                # print('ct_tmp: {}'.format(ct_tmp.shape))
                 regression_target_stage2[box_index] = rt_tmp
                 conf_target_stage2[box_index] = ct_tmp
             print('stage2 regression target: {}'.format(regression_target_stage2.shape))
