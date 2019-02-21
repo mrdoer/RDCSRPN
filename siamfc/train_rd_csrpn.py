@@ -317,57 +317,57 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
                               optimizer.param_groups[0]['lr']))
                 loss_temp_cls = 0
                 loss_temp_reg = 0
-                if vis_port:
-                    anchors_show = train_dataset.anchors
-                    exem_img = exemplar_imgs[0].cpu().numpy().transpose(1, 2, 0)
-                    inst_img = instance_imgs[0].cpu().numpy().transpose(1, 2, 0)
+                # if vis_port:
+                #     anchors_show = train_dataset.anchors
+                #     exem_img = exemplar_imgs[0].cpu().numpy().transpose(1, 2, 0)
+                #     inst_img = instance_imgs[0].cpu().numpy().transpose(1, 2, 0)
 
-                    # show detected box with max score
-                    topk = 3
-                    cls_pred = F.softmax(pred_conf, dim=2)[0, :, 1]
-                    vis.plot_img(exem_img.transpose(2, 0, 1), win=1, name='exemple')
-                    topk_box = get_topk_box(cls_pred, pred_offset[0], anchors_show, topk=topk)
-                    img_box = add_box_img(inst_img, topk_box)
-                    cls_pred = conf_target[0]
-                    gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)
-                    img_box = add_box_img(img_box, gt_box, color=(255, 0, 0))
-                    vis.plot_img(img_box.transpose(2, 0, 1), win=2, name='box_max_score')
+                #     # show detected box with max score
+                #     topk = 3
+                #     cls_pred = F.softmax(pred_conf, dim=2)[0, :, 1]
+                #     vis.plot_img(exem_img.transpose(2, 0, 1), win=1, name='exemple')
+                #     topk_box = get_topk_box(cls_pred, pred_offset[0], anchors_show, topk=topk)
+                #     img_box = add_box_img(inst_img, topk_box)
+                #     cls_pred = conf_target[0]
+                #     gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)
+                #     img_box = add_box_img(img_box, gt_box, color=(255, 0, 0))
+                #     vis.plot_img(img_box.transpose(2, 0, 1), win=2, name='box_max_score')
 
-                    # show gt_box
-                    cls_pred = conf_target[0]
-                    gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)
-                    img_box = add_box_img(inst_img, gt_box, color=(255, 0, 0))
-                    vis.plot_img(img_box.transpose(2, 0, 1), win=3, name='box_gt')
+                #     # show gt_box
+                #     cls_pred = conf_target[0]
+                #     gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)
+                #     img_box = add_box_img(inst_img, gt_box, color=(255, 0, 0))
+                #     vis.plot_img(img_box.transpose(2, 0, 1), win=3, name='box_gt')
 
-                    # show anchor with max score
-                    cls_pred = F.softmax(pred_conf, dim=2)[0, :, 1]
-                    scores, index = torch.topk(cls_pred, k=topk)
-                    img_box = add_box_img(inst_img, anchors_show[index.cpu()])
-                    cls_pred = conf_target[0]
-                    gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)
-                    img_box = add_box_img(img_box, gt_box, color=(255, 0, 0))
-                    vis.plot_img(img_box.transpose(2, 0, 1), win=4, name='anchor_max_score')
+                #     # show anchor with max score
+                #     cls_pred = F.softmax(pred_conf, dim=2)[0, :, 1]
+                #     scores, index = torch.topk(cls_pred, k=topk)
+                #     img_box = add_box_img(inst_img, anchors_show[index.cpu()])
+                #     cls_pred = conf_target[0]
+                #     gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)
+                #     img_box = add_box_img(img_box, gt_box, color=(255, 0, 0))
+                #     vis.plot_img(img_box.transpose(2, 0, 1), win=4, name='anchor_max_score')
 
-                    # show anchor and detected box with max iou
-                    cls_pred = conf_target[0]
-                    gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)[0]
-                    iou = compute_iou(anchors_show, gt_box).flatten()
-                    index = np.argsort(iou)[-topk:]
-                    img_box = add_box_img(inst_img, anchors_show[index])
-                    cls_pred = conf_target[0]
-                    gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)
-                    img_box = add_box_img(img_box, gt_box, color=(255, 0, 0))
-                    vis.plot_img(img_box.transpose(2, 0, 1), win=5, name='anchor_max_iou')
-                    # detected box
-                    regress_offset = pred_offset[0].cpu().detach().numpy()
-                    topk_offset = regress_offset[index, :]
-                    anchors = anchors_show[index, :]
-                    pred_box = box_transform_inv(anchors, topk_offset)
-                    img_box = add_box_img(inst_img, pred_box)
-                    cls_pred = conf_target[0]
-                    gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)
-                    img_box = add_box_img(img_box, gt_box, color=(255, 0, 0))
-                    vis.plot_img(img_box.transpose(2, 0, 1), win=6, name='box_max_iou')
+                #     # show anchor and detected box with max iou
+                #     cls_pred = conf_target[0]
+                #     gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)[0]
+                #     iou = compute_iou(anchors_show, gt_box).flatten()
+                #     index = np.argsort(iou)[-topk:]
+                #     img_box = add_box_img(inst_img, anchors_show[index])
+                #     cls_pred = conf_target[0]
+                #     gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)
+                #     img_box = add_box_img(img_box, gt_box, color=(255, 0, 0))
+                #     vis.plot_img(img_box.transpose(2, 0, 1), win=5, name='anchor_max_iou')
+                #     # detected box
+                #     regress_offset = pred_offset[0].cpu().detach().numpy()
+                #     topk_offset = regress_offset[index, :]
+                #     anchors = anchors_show[index, :]
+                #     pred_box = box_transform_inv(anchors, topk_offset)
+                #     img_box = add_box_img(inst_img, pred_box)
+                #     cls_pred = conf_target[0]
+                #     gt_box = get_topk_box(cls_pred, regression_target[0], anchors_show)
+                #     img_box = add_box_img(img_box, gt_box, color=(255, 0, 0))
+                #     vis.plot_img(img_box.transpose(2, 0, 1), win=6, name='box_max_iou')
 
         train_loss = np.mean(train_loss)
 
