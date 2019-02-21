@@ -263,8 +263,8 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
     for epoch in range(start_epoch, config.epoch + 1):
         train_loss = []
         model.train()
-        loss_temp_cls = 0
-        loss_temp_reg = 0
+        loss_temp_cls_stage1, loss_temp_cls_stage2 = 0,0
+        loss_temp_reg_stage1, loss_temp_reg_stage2 = 0,0
         for i, data in enumerate(tqdm(trainloader)):
             exemplar_imgs, instance_imgs, regression_target, conf_target, target_gt = data
             # conf_target (8,1125) (8,225x5)
