@@ -176,7 +176,7 @@ class ImagnetVIDDataset_(Dataset):
         return im_patch, gt_cx, gt_cy
 
     def compute_target(self, anchors, box):
-        regression_target = box_triansform(anchors, box)
+        regression_target = box_transform(anchors, box)
 
         iou = compute_iou(anchors, box).flatten()
         # print(np.max(iou))
