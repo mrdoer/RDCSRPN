@@ -37,7 +37,7 @@ torch.manual_seed(config.seed)
 
 
 def train(data_dir, model_path=None, vis_port=None, init=None):
-    def compute_target(self, anchors, box):
+    def compute_target(anchors, box):
         regression_target = box_transform(anchors, box)
         print('stage2 gt box {}'.format(box))
         iou = compute_iou(anchors, box).flatten()
