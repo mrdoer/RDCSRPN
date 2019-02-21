@@ -44,7 +44,7 @@ def rpn_cross_entropy_balance(input, target, num_pos, num_neg):
     else:
         pos_loss = F.cross_entropy(input=input.reshape(-1, 2)[cal_index_pos], target=target.flatten()[cal_index_pos],
                                reduction='sum') / cal_index_pos.shape[0]
-    if cal_index_neg == 0:
+    if cal_index_neg.shape[0] == 0:
         neg_loss = 0
     else:
         neg_loss = F.cross_entropy(input=input.reshape(-1, 2)[cal_index_neg], target=target.flatten()[cal_index_neg],

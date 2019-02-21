@@ -177,7 +177,7 @@ class ImagnetVIDDataset_(Dataset):
 
     def compute_target(self, anchors, box):
         regression_target = box_transform(anchors, box)
-        print('gt box {}'.format(box))
+        # print('gt box {}'.format(box))
         iou = compute_iou(anchors, box).flatten()
         print(np.max(iou))
         pos_index = np.where(iou > config.pos_threshold)[0]
