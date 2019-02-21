@@ -29,7 +29,7 @@ from .custom_transforms import Normalize, ToTensor, RandomStretch, \
 from .loss import rpn_smoothL1
 from .loss import rpn_cross_entropy_balance
 from .visual import visual
-from .utils import get_topk_box, add_box_img, compute_iou, box_transform_inv, adjust_learning_rate
+from .utils import get_topk_box, add_box_img, compute_iou, box_transform_inv, adjust_learning_rate, box_transform
 
 from IPython import embed
 
