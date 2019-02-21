@@ -257,6 +257,8 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
         for i, data in enumerate(tqdm(trainloader)):
             exemplar_imgs, instance_imgs, regression_target, conf_target, target_gt = data
             # conf_target (8,1125) (8,225x5)
+            print('regression target: {}'.format(regression_target.shape))
+            print('conf target: {}'.format(conf_target.shape))
             regression_target, conf_target = regression_target.cuda(), conf_target.cuda()
 
             # stage1
@@ -280,7 +282,14 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
             print('new anchors shape:{}'.format(new_anchors.shape))
             print('target_gt shape:{}, {}'.format(target_gt.shape,target_gt))
             # regression_target_stage2, conf_target_stage2 = regression_target.cuda(), conf_target.cuda()
-            regression_target_stage2, conf_target_stage2 = train_dataset.compute_target(new_anchors,target_gt)
+            # regression_target_stage2, conf_target_stage2 = train_dataset.compute_target(new_anchors,target_gt)
+            regression_target_stage2, conf_target_stage2 = [],[]
+            for box_index in range(config.train_batch_size):
+                rt_tmp,ct_tmp = train_dataset.compute_target(new_anchors,target_gt[box_index])
+                rt_tmp,ct_tmp = list(rt_tmp),list(ct_tmp)
+                regression_target_stage2.append(rt_tmp)
+                conf_target_stage2.append(ct_tmp)
+            regression_target_stage2, conf_target_stage2 = np.asarray(regression_target_stage2), np.asarray(conf_target_stage2)
             anchor_num_stage2 = config.anchor_num
             pred_conf_stage2 = pred_score_stage2.reshape(-1, 2,
                                             anchor_num_stage2 * config.score_size * config.score_size).permute(0,
