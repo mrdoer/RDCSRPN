@@ -259,6 +259,7 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
             # conf_target (8,1125) (8,225x5)
             print('regression target: {}'.format(regression_target.shape))
             print('conf target: {}'.format(conf_target.shape))
+            print('target gt {}'.format(target_gt))
             regression_target, conf_target = regression_target.cuda(), conf_target.cuda()
 
             # stage1
