@@ -17,7 +17,8 @@ class Config:
     train_num_workers = 4                  # number of workers of train dataloader
     valid_num_workers = 4                  # number of workers of validation dataloader
 
-    start_lr = 1e-6
+    clip=5
+    start_lr = 1e-2
     end_lr = 1e-6
     warm_epoch = None
     warm_lr = 1e-6

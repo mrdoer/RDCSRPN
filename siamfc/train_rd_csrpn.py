@@ -317,6 +317,7 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
             loss = loss_stage1 + loss_stage2
             optimizer.zero_grad()
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), config.clip)
             optimizer.step()
             step = (epoch - 1) * len(trainloader) + i
             summary_writer.add_scalar('train/loss', loss.data, step)
