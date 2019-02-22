@@ -154,9 +154,7 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
                 loss_stage1 = cls_loss_stage1 + config.lamb * reg_loss_stage1
                 # stage2
                 # TODO anchor filter
-                new_anchors = box_transform_inv(train_dataset.anchors,pred_offset_stage1)
-                # regression_target_stage2, conf_target_stage2 = regression_target.cuda(), conf_target.cuda()
-                regression_target_stage2, conf_target_stage2 = train_dataset.compute_target(new_anchors,target_gt)
+                # new_anchors = box_transform_inv(train_dataset.anchors,pred_offset_stage1)
                 anchor_num_stage2 = config.anchor_num
                 pred_conf_stage2 = pred_score_stage2.reshape(-1, 2,
                                                anchor_num_stage2 * config.score_size * config.score_size).permute(0,
@@ -167,8 +165,8 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
                     0,
                     2,
                     1)
-                cls_loss_stage2 = rpn_cross_entropy_balance(pred_conf_stage2, conf_target_stage2, config.num_pos, config.num_neg)
-                reg_loss_stage2 = rpn_smoothL1(pred_offset_stage2, regression_target_stage2, conf_target_stage2)
+                cls_loss_stage2 = rpn_cross_entropy_balance(pred_conf_stage2, conf_target, config.num_pos, config.num_neg)
+                reg_loss_stage2 = rpn_smoothL1(pred_offset_stage2, regression_target, conf_target)
                 loss_stage2 = cls_loss_stage2 + config.lamb * reg_loss_stage2
 
                 loss = loss_stage1 + loss_stage2
@@ -184,9 +182,6 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
                 loss_temp_cls_stage2 += cls_loss_stage2.detach().cpu().numpy()
                 loss_temp_reg_stage2 += reg_loss_stage2.detach().cpu().numpy()
 
-                # if vis_port:
-                #     vis.plot_error({'rpn_cls_loss': cls_loss.detach().cpu().numpy().ravel()[0],
-                #                     'rpn_regress_loss': reg_loss.detach().cpu().numpy().ravel()[0]}, win=0)
                 if (i + 1) % config.show_interval == 0:
                     tqdm.write("[warm epoch %2d][iter %4d] cls_loss_stage1: %.4f, reg_loss_stage1: %.4f, cls_loss_stage2: %.4f, reg_loss_stage2: %.4f lr: %.2e"
                                % (epoch, i, loss_temp_cls_stage1 / config.show_interval, loss_temp_reg_stage1 / config.show_interval,
@@ -296,27 +291,13 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
             # stage2
             # TODO anchor filter
             # print('+++++++  Stage2 +++++++++++')
-            new_anchors = box_transform_inv(train_dataset.anchors,pred_offset_stage1[0].cpu().detach().numpy())
+            # new_anchors = box_transform_inv(train_dataset.anchors,pred_offset_stage1[0].cpu().detach().numpy())
             # np.savetxt('train_dataset_anchors.txt',train_dataset.anchors)
             # np.savetxt('new_anchors.txt',new_anchors)
             # print('new anchors shape:{}'.format(new_anchors.shape))
             # print('target_gt shape:{}'.format(target_gt.shape))
-            # regression_target_stage2, conf_target_stage2 = regression_target.cuda(), conf_target.cuda()
-            regression_target_stage2, conf_target_stage2 = regression_target.cpu().detach().numpy(), conf_target.cpu().detach().numpy()
             # np.savetxt('conf_target_stage1.txt',conf_target_stage2)
             # np.savetxt('regression_target_stage1.txt',regression_target_stage2[0])
-            for box_index in range(config.train_batch_size):
-                # print('{}th box {}'.format(box_index,target_gt[box_index]))
-                rt_tmp,ct_tmp = compute_target(new_anchors,target_gt[box_index].cpu().detach().numpy())
-                # print('rt_tmp: {}'.format(rt_tmp.shape))
-                # print('ct_tmp: {}'.format(ct_tmp.shape))
-                regression_target_stage2[box_index] = rt_tmp
-                conf_target_stage2[box_index] = ct_tmp
-            # np.savetxt('conf_target_stage2.txt',conf_target_stage2)
-            # np.savetxt('regression_target_stage1.txt',regression_target_stage2[0])
-            # print('stage2 regression target: {}'.format(regression_target_stage2.shape))
-            # print('stage2 conf target: {}'.format(conf_target_stage2.shape))
-            regression_target_stage2, conf_target_stage2 = torch.tensor(regression_target_stage2).cuda(), torch.tensor(conf_target_stage2).cuda()
             anchor_num_stage2 = config.anchor_num
             pred_conf_stage2 = pred_score_stage2.reshape(-1, 2,
                                             anchor_num_stage2 * config.score_size * config.score_size).permute(0,
@@ -328,9 +309,9 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
                                                                                                                     2,
                                                                                                                     1)
             # print('cls',pred_conf_stage2.shape,conf_target_stage2.shape,config.num_pos,config.num_neg)
-            cls_loss_stage2 = rpn_cross_entropy_balance(pred_conf_stage2, conf_target_stage2, config.num_pos, config.num_neg)
+            cls_loss_stage2 = rpn_cross_entropy_balance(pred_conf_stage2, conf_target, config.num_pos, config.num_neg)
             # print('reg',pred_offset_stage2.shape,regression_target_stage2.shape,conf_target_stage2.shape)
-            reg_loss_stage2 = rpn_smoothL1(pred_offset_stage2, regression_target_stage2, conf_target_stage2)
+            reg_loss_stage2 = rpn_smoothL1(pred_offset_stage2, regression_target, conf_target)
             loss_stage2 = cls_loss_stage2 + config.lamb * reg_loss_stage2
 
             loss = loss_stage1 + loss_stage2
@@ -346,9 +327,6 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
             loss_temp_cls_stage2 += cls_loss_stage2.detach().cpu().numpy()
             loss_temp_reg_stage2 += reg_loss_stage2.detach().cpu().numpy()
 
-            # if vis_port:
-            #     vis.plot_error({'rpn_cls_loss': cls_loss.detach().cpu().numpy().ravel()[0],
-            #                     'rpn_regress_loss': reg_loss.detach().cpu().numpy().ravel()[0]}, win=0)
             if (i + 1) % config.show_interval == 0:
                 tqdm.write("[epoch %2d][iter %4d] cls_loss_stage1: %.4f, reg_loss_stage1: %.4f,cls_loss_stage2: %.4f, reg_loss_stage2: %.4f lr: %.2e"
                            % (epoch, i, loss_temp_cls_stage1 / config.show_interval, loss_temp_reg_stage1 / config.show_interval,
@@ -384,16 +362,7 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
             loss_stage1 = cls_loss_stage1 + config.lamb * reg_loss_stage1
             # stage2
             # TODO anchor filter
-            new_anchors = box_transform_inv(train_dataset.anchors,pred_offset_stage1[0].cpu().detach().numpy())
-
-            regression_target_stage2, conf_target_stage2 = torch.tensor(regression_target_stage2).cuda(), torch.tensor(conf_target_stage2).cuda()
-            for box_index in range(config.train_batch_size):
-                # print('{}th box {}'.format(box_index,target_gt[box_index]))
-                rt_tmp,ct_tmp = compute_target(new_anchors,target_gt[box_index].cpu().detach().numpy())
-                # print('rt_tmp: {}'.format(rt_tmp.shape))
-                # print('ct_tmp: {}'.format(ct_tmp.shape))
-                regression_target_stage2[box_index] = rt_tmp
-                conf_target_stage2[box_index] = ct_tmp
+            # new_anchors = box_transform_inv(train_dataset.anchors,pred_offset_stage1[0].cpu().detach().numpy())
             anchor_num_stage2 = config.anchor_num
             pred_conf_stage2 = pred_score_stage2.reshape(-1, 2,
                                             anchor_num_stage2 * config.score_size * config.score_size).permute(0,
@@ -404,8 +373,8 @@ def train(data_dir, model_path=None, vis_port=None, init=None):
                                                                                                                     0,
                                                                                                                     2,
                                                                                                                     1)
-            cls_loss_stage2 = rpn_cross_entropy_balance(pred_conf_stage2, conf_target_stage2, config.num_pos, config.num_neg)
-            reg_loss_stage2 = rpn_smoothL1(pred_offset_stage2, regression_target_stage2, conf_target_stage2)
+            cls_loss_stage2 = rpn_cross_entropy_balance(pred_conf_stage2, conf_target, config.num_pos, config.num_neg)
+            reg_loss_stage2 = rpn_smoothL1(pred_offset_stage2, regression_target, conf_target)
             loss_stage2 = cls_loss_stage2 + config.lamb * reg_loss_stage2
 
             loss = loss_stage1 + loss_stage2
