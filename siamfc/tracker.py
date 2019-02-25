@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import time
 import torchvision.transforms as transforms
 
-from .alexnet import SiameseAlexNet
+from .rd_csrpn import DenseSiamese
 from .config import config
 from .custom_transforms import ToTensor
 from .utils import get_exemplar_image, get_instance_image, box_transform_inv
@@ -18,7 +18,7 @@ torch.set_num_threads(1)  # otherwise pytorch will take all cpus
 
 class SiamRPNTracker:
     def __init__(self, model_path):
-        self.model = SiameseAlexNet()
+        self.model = DenseSiamese()
         checkpoint = torch.load(model_path)
         if 'model' in checkpoint.keys():
             self.model.load_state_dict(torch.load(model_path)['model'])
@@ -79,7 +79,7 @@ class SiamRPNTracker:
                                                          config.instance_size,
                                                          config.context_amount, self.img_mean)
         instance_img = self.transforms(instance_img)[None, :, :, :]
-        pred_score, pred_regression = self.model.track(instance_img.cuda())
+        pred_score, pred_regression, pred_score_stage2, pred_regression_stage2 = self.model.track(instance_img.cuda())
 
         pred_conf = pred_score.reshape(-1, 2, config.anchor_num * config.score_size * config.score_size).permute(0,
                                                                                                                  2,
@@ -88,9 +88,26 @@ class SiamRPNTracker:
                                               config.anchor_num * config.score_size * config.score_size).permute(0,
                                                                                                                  2,
                                                                                                                  1)
+        anchor_num_stage2 = config.anchor_num
+        pred_conf_stage2 = pred_score_stage2.reshape(-1, 2,
+                                        anchor_num_stage2 * config.score_size * config.score_size).permute(0,
+                                                                                                            2,
+                                                                                                            1)
+        pred_offset_stage2 = pred_regression_stage2.reshape(-1, 4,
+                                                anchor_num_stage2 * config.score_size * config.score_size).permute(
+                                                                                                                0,
+                                                                                                                2,
+                                                                                                                1)
         delta = pred_offset[0].cpu().detach().numpy()
         box_pred = box_transform_inv(self.anchors, delta)
         score_pred = F.softmax(pred_conf, dim=2)[0, :, 1].cpu().detach().numpy()
+
+        delta_stage2 = pred_offset_stage2[0].cpu().detach().numpy()
+        box_pred_stage2 = box_transform_inv(box_pred, delta_stage2)
+        score_pred_stage2 = F.softmax(pred_conf_stage2, dim=2)[0, :, 1].cpu().detach().numpy()
+
+        box_pred = box_pred_stage2
+        score_pred = score_pred_stage2
 
         def change(r):
             return np.maximum(r, 1. / r)

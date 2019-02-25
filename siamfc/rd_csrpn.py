@@ -37,11 +37,6 @@ class RDN(nn.Module):
         # self.dense_block3 = DenseBlock(36,36,6)
         self.dense_block4 = DenseBlock_c(in_channels=36,kernel_size=3)
 
-        # self.ftb1_z = feature_transformation_block(C=384,C_=256,dk=3,shape=[6,6])
-        # self.ftb2_z = feature_transformation_block(C=384,C_=256,dk=3,shape=[8,8])
-        # self.ftb1_x = feature_transformation_block(C=384,C_=256,dk=3,shape=[22,22])
-        # self.ftb2_x = feature_transformation_block(C=384,C_=256,dk=3,shape=[24,24])
-
     def forward(self,x):
         x0 = self.conv1(x)
         # print('x0 {}'.format(x0.shape))
@@ -105,7 +100,6 @@ class DenseBlock(nn.Module):
         for i in range(num_layers):
             self.add_module(f'layer_{i}',
                             DenseLayer(in_channels=in_channels+i*growth_rate,out_channels = growth_rate))
-        # self.add_module(f'layer_{self.num_layers}',nn.Conv2d(in_channels=in_channels+self.num_layers*growth_rate,out_channels=64))
 
     def forward(self,block_input):
         layer_input = block_input
@@ -158,11 +152,6 @@ class DenseBlock_b(nn.Sequential):
         self.add_module('relu2',nn.ReLU(inplace=True))
         self.add_module('conv2',nn.Conv2d(384,out_channels=256,kernel_size=self.kernel_size))
         self.add_module('dropout2',nn.Dropout2d(0.2,inplace=True))
-
-        # self.add_module('bn3',nn.BatchNorm2d(num_features=384))
-        # self.add_module('relu3',nn.ReLU(inplace=True))
-        # self.add_module('conv3',nn.Conv2d(384,out_channels=256,kernel_size=self.kernel_size))
-        # self.add_module('dropout3',nn.Dropout2d(0.2,inplace=True))
 
 class DenseLayer(nn.Sequential):
     def __init__(self, in_channels, out_channels, dropout=0.2):
@@ -313,8 +302,8 @@ class DenseSiamese(nn.Module):
         self.score_filters = kernel_score.reshape(-1, 256, 4, 4)
         self.reg_filters = kernel_regression.reshape(-1, 256, 4, 4)
 
-        kernel_score_stage2 = self.conv_cls1(template_feature_stage2).view(N, 2 * self.anchor_num, 256, 4, 4)
-        kernel_regression_stage2 = self.conv_r1(template_feature_stage2).view(N, 4 * self.anchor_num, 256, 4, 4)
+        kernel_score_stage2 = self.conv_cls1_stage2(template_feature_stage2).view(N, 2 * self.anchor_num, 256, 4, 4)
+        kernel_regression_stage2 = self.conv_r1_stage2(template_feature_stage2).view(N, 4 * self.anchor_num, 256, 4, 4)
         self.score_filters_stage2 = kernel_score_stage2.reshape(-1, 256, 4, 4)
         self.reg_filters_stage2 = kernel_regression_stage2.reshape(-1, 256, 4, 4)
 

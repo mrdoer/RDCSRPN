@@ -9,7 +9,7 @@ class Config:
     sample_type = 'uniform'
 
     # training related
-    num_per_epoch = 128 #4 * 53200              # num of samples per epoch
+    num_per_epoch = 4 * 53200              # num of samples per epoch
     train_ratio = 0.95                     # training ratio of VID dataset
     frame_range = 100                      # frame range of choosing the instance
     train_batch_size = 8                  # training batch size
